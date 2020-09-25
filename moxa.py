@@ -1,5 +1,7 @@
 from pandas import DataFrame
 
+import configparser
+
 
 class Moxa:
     """
@@ -18,10 +20,8 @@ class Moxa:
         """
         moxa_ini_file = open(self.ini_file, "r")
         moxa_ini_list = moxa_ini_file.readlines()
-        moxa_str = str(moxa_ini_list)
-        moxa_list = moxa_str.split(r"\n")
 
-        return moxa_list
+        return moxa_ini_list
 
     def generate_ini_file(self):
         pass

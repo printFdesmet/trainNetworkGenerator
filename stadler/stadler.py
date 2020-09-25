@@ -74,18 +74,18 @@ class Stadler(TrainNetwork):
             'G4': ['16', '28'],
         }
 
-        dataframe["port"] = dataframe["port"].str.upper()
+        dataframe["Port"] = dataframe["Port"].str.upper()
 
         # Replaces the uplink ports in the dataframe.
         if len(port_list) <= 16:
-            for port in dataframe["port"]:
+            for port in dataframe["Port"]:
                 if uplink_ports.get(port) is not None:
-                    dataframe.replace({"port": port}, uplink_ports[port][0],
+                    dataframe.replace({"Port": port}, uplink_ports[port][0],
                                       inplace=True)
         else:
-            for port in dataframe["port"]:
+            for port in dataframe["Port"]:
                 if uplink_ports.get(port) is not None:
-                    dataframe.replace({"port": port}, uplink_ports[port][0],
+                    dataframe.replace({"Port": port}, uplink_ports[port][0],
                                       inplace=True)
 
         return dataframe

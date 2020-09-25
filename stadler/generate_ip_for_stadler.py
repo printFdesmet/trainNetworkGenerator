@@ -50,7 +50,10 @@ class GenerateIPForStadler:
         }
 
         vehicle_ip = vehicle_type_to_ip.get(self.vehicle_name)
-        vlan_ip = vlan_to_ip.get(self.vlan_id[counter][:-1])
+        if len(self.vlan_id[counter]) > 3:
+            vlan_ip = vlan_to_ip.get(self.vlan_id[counter][0])
+        else:
+            vlan_ip = vlan_to_ip.get(self.vlan_id[counter][:-1])
 
         second_octet = int(vehicle_ip) + int(vlan_ip)
 
@@ -64,8 +67,7 @@ class GenerateIPForStadler:
 
         :returns: string
         """
-
-        return str(self.consist_number)
+        return str(self.consist_number + 1)
 
     def generate_unique_ip(self):
         """
@@ -79,8 +81,13 @@ class GenerateIPForStadler:
         ip_list = []
 
         for an_ip in self.ip:
+            if type(an_ip) == float:
+                ip_list.append("")
+                counter += 1
+                continue
             if not an_ip:
                 ip_list.append("")
+                counter += 1
             else:
                 second_octet = self.generate_second_octet()
                 third_octet = self.generate_third_octet()
