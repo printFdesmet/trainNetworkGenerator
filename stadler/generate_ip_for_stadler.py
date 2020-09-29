@@ -1,4 +1,8 @@
 """
+TODO: Extract the untagged vlan port if there is a list. if no untagged,
+      keep the original way to chose the subnet. see from line 54.
+      HOWTO: Loop over the list, selecting the element containing the 'U'
+      character then choose the first char of that element.
 IMPORTANT: For the second octet only 7 bits are being used, from which the
            the first 3 are for the vehicle type and the following 4 for
            the VLAN ID.

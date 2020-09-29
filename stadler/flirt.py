@@ -46,11 +46,49 @@ class Flirt(Stadler):
             vlan_id=vlan_list)
         converted_ip_list = gis.generate_unique_ip()
 
-        data_with_updated_values = self.replace_faulty_values(
+        df = self.replace_faulty_values(
             ip_list=converted_ip_list,
             port_list=port_list)
 
-        # moxa = Moxa("data/moxa/moxa_4500a_16.ini")
+        switch_row = df.loc[df["Function"] == "switch"]
+        switch_ip = switch_row["ip"].values
+
+        port_based_ip_row_list = df.loc[df["Port"] != ""]
+        port_based_ip_list = port_based_ip_row_list["ip"].values
+
+        ports_row = df.loc[df["Port"] != ""]
+        ports = ports_row["Port"].values
+
+        vlan_row = df.loc[df["VLAN ID"] != ""]
+        vlan = vlan_row["VLAN ID"].values
+
+        poe = df["PoE power demand"].values
+
+        coupling_port_row = df[df["Function"].str.contains("coupling", na=False)]
+        coupling_port = coupling_port_row["Port"].values
+
+        functions = df["Function"].values
+
+        switch_name = df["Position"].values[0]
+
+        netmask = "255.128.0.0"  # CIDR /9
+
+        moxa = Moxa(
+            coupling_port=coupling_port,
+            functions=functions,
+            ini_file="data/moxa/moxa_4500a_16.ini",
+            netmask=netmask,
+            poe=poe,
+            ports=ports,
+            port_based_ip_list=port_based_ip_list,
+            vlan=vlan,
+            switch_ip=switch_ip,
+            switch_name=switch_name
+                    )
+        # moxa.generate_ini_file()
+
+        print(df)
+
         # moxa_list = moxa.convert_ini_file_to_list()
         # print(moxa.generate_ini_file())
         # new_config_list = []
@@ -62,12 +100,19 @@ class Flirt(Stadler):
         #         print(new_config_list)
         #     if (f"Device_IP_{data_with_updated_values["Port]}") in line:
         #         replaced_line = line.replace('\n', '')
-
-        # # print(data_with_updated_values)
-        # return data_with_updated_values.to_csv(
-        #     f"data/stadler/flirt{self.vehicle_name}"
-        #     f"_consist{self.total_amount_consists + 1}_switch_{self.switch}.csv")
-
-    def replace_lines(self):
-        pass
-
+        #
+        # if self.vehicle_name == "DMU4":
+        #     return df.to_csv(
+        #         f"data/stadler/DMU4/flirt{self.vehicle_name}"
+        #         f"_consist{self.total_amount_consists + 1}"
+        #         f"_switch_{self.switch}.csv")
+        # elif self.vehicle_name == "BMU-B3":
+        #     return df.to_csv(
+        #         f"data/stadler/BMU-B3/flirt{self.vehicle_name}"
+        #         f"_consist{self.total_amount_consists + 1}"
+        #         f"_switch_{self.switch}.csv")
+        # elif self.vehicle_name == "BMU-B4":
+        #     return df.to_csv(
+        #         f"data/stadler/BMU-B4/flirt{self.vehicle_name}"
+        #         f"_consist{self.total_amount_consists + 1}"
+        #         f"_switch_{self.switch}.csv")
