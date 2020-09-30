@@ -1,8 +1,4 @@
 """
-TODO: Extract the untagged vlan port if there is a list. if no untagged,
-      keep the original way to chose the subnet. see from line 54.
-      HOWTO: Loop over the list, selecting the element containing the 'U'
-      character then choose the first char of that element.
 IMPORTANT: For the second octet only 7 bits are being used, from which the
            the first 3 are for the vehicle type and the following 4 for
            the VLAN ID.
@@ -55,7 +51,9 @@ class GenerateIPForStadler:
 
         vehicle_ip = vehicle_type_to_ip.get(self.vehicle_name)
         if len(self.vlan_id[counter]) > 3:
-            vlan_ip = vlan_to_ip.get(self.vlan_id[counter][0])
+            untagged = self.vlan_id[counter].find("U")
+            untagged -= 1
+            vlan_ip = vlan_to_ip.get(self.vlan_id[counter][untagged])
         else:
             vlan_ip = vlan_to_ip.get(self.vlan_id[counter][:-1])
 
