@@ -83,11 +83,12 @@ class Flirt(Stadler):
             port_based_ip_list=port_based_ip_list,
             vlan=vlan,
             switch_ip=switch_ip,
-            switch_name=switch_name
+            switch_name=f"Consist{self.total_amount_consists + 1}"
+                        f"_Switch{switch_name[-2:]}"
                     )
-        # moxa.generate_ini_file()
+        moxa.generate_ini_file()
 
-        print(df)
+        # print(df)
 
         # moxa_list = moxa.convert_ini_file_to_list()
         # print(moxa.generate_ini_file())
@@ -100,7 +101,7 @@ class Flirt(Stadler):
         #         print(new_config_list)
         #     if (f"Device_IP_{data_with_updated_values["Port]}") in line:
         #         replaced_line = line.replace('\n', '')
-        #
+
         # if self.vehicle_name == "DMU4":
         #     return df.to_csv(
         #         f"data/stadler/DMU4/flirt{self.vehicle_name}"
