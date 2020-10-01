@@ -1,9 +1,4 @@
 """
-TODO: Loop over de config file.
-TODO: Extract the rows for the current switch configuration.
-TODO: From those rows extract the IP, VLAN ID and port.
-TODO: Generate the correct IP from the formula.
-TODO: Loop over the IP column, replacing the values with the generated ones.
 TODO: Convert the Multicast address(es) to their MAC.
 TODO: loop over the Multicast column replacing the IP value to the MAC variant.
 """
@@ -64,8 +59,14 @@ class Flirt(Stadler):
 
         poe = df["PoE power demand"].values
 
-        coupling_port_row = df[df["Function"].str.contains("coupling", na=False)]
-        coupling_port = coupling_port_row["Port"].values
+        if (self.switch == "A3" or self.switch == "D3" or
+                self.switch == "A1" or self.switch == "D1"):
+            coupling_port_row = df[df["Function"].str.contains("coupling", na=False)]
+            coupling_port = coupling_port_row["Port"].values
+            coupling_mode = "3"
+        else:
+            coupling_port = "14"
+            coupling_mode = "0"
 
         functions = df["Function"].values
 
@@ -73,47 +74,70 @@ class Flirt(Stadler):
 
         netmask = "255.128.0.0"  # CIDR /9
 
+        management_vlan_row = df.loc[df["Function"] == "switch"]
+        management_vlan = management_vlan_row["VLAN ID"].values
+
+        redundancy_ports_row = df.loc[df["Function"] == "Ring PIS/VSS/PAN"]
+        redundancy_ports = redundancy_ports_row["Port"].values
+        redundant_protocol = "2"  # Turbo Ring V2.
+
+        ring_master = "0"
+        if self.switch == "C2":
+            ring_master = "1"
+
+        tagged_ports = []
+        untagged_ports = []
+        untagged = ""
+        for vlans in vlan:
+            if "U" in str(vlans):
+                untagged = vlans.find("U")
+                untagged -= 1
+                untagged_ports.append(vlans[untagged])
+            else:
+                untagged_ports.append("")
+            if "T" in str(vlans) and "U" in str(vlans):
+                tagged = vlans.replace(f"{vlans[untagged]}U,", "")
+                tagged = tagged.replace(f"T", "")
+                tagged_ports.append(tagged)
+            elif "T" in str(vlans):
+                tagged = vlans.replace(f"T", "")
+                tagged_ports.append(tagged)
+            else:
+                tagged_ports.append("")
         moxa = Moxa(
+            coupling_mode=coupling_mode,
             coupling_port=coupling_port,
             functions=functions,
             ini_file="data/moxa/moxa_4500a_16.ini",
+            management_vlan=management_vlan,
             netmask=netmask,
             poe=poe,
             ports=ports,
             port_based_ip_list=port_based_ip_list,
             vlan=vlan,
+            redundancy_ports=redundancy_ports,
+            redundant_protocol=redundant_protocol,
+            ring_master=ring_master,
             switch_ip=switch_ip,
             switch_name=f"Consist{self.total_amount_consists + 1}"
-                        f"_Switch{switch_name[-2:]}"
-                    )
-        moxa.generate_ini_file()
+                        f"_Switch{switch_name[-2:]}",
+            tagged_ports=tagged_ports,
+            untagged_ports=untagged_ports
+        )
+        moxa_config_list = moxa.generate_ini_file()
 
-        # print(df)
-
-        # moxa_list = moxa.convert_ini_file_to_list()
-        # print(moxa.generate_ini_file())
-        # new_config_list = []
-        # counter = 0
-        # for line in moxa_list:
-        #     if f"Port_{1}_EN" in line:
-        #         replaced_line = line.replace('1\n', '0\n')
-        #         new_config_list.append(replaced_line)
-        #         print(new_config_list)
-        #     if (f"Device_IP_{data_with_updated_values["Port]}") in line:
-        #         replaced_line = line.replace('\n', '')
-
-        # if self.vehicle_name == "DMU4":
-        #     return df.to_csv(
-        #         f"data/stadler/DMU4/flirt{self.vehicle_name}"
-        #         f"_consist{self.total_amount_consists + 1}"
-        #         f"_switch_{self.switch}.csv")
-        # elif self.vehicle_name == "BMU-B3":
-        #     return df.to_csv(
-        #         f"data/stadler/BMU-B3/flirt{self.vehicle_name}"
-        #         f"_consist{self.total_amount_consists + 1}"
-        #         f"_switch_{self.switch}.csv")
-        # elif self.vehicle_name == "BMU-B4":
-        #     return df.to_csv(
-        #         f"data/stadler/BMU-B4/flirt{self.vehicle_name}"
-        #         f"_consist{self.total_amount_consists + 1}"
-        #         f"_switch_{self.switch}.csv")
+        if self.vehicle_name == "DMU4":
+            dmu4_config = f"data/stadler/DMU4/flirt{self.vehicle_name}" \
+                          f"_consist{self.total_amount_consists + 1}" \
+                          f"_switch_{self.switch}.ini"
+            moxa.write_ini_file(dmu4_config, moxa_config_list)
+        elif self.vehicle_name == "BMU-B3":
+            bmub3_config = f"data/stadler/BMU-B3/flirt{self.vehicle_name}" \
+                           f"_consist{self.total_amount_consists + 1}" \
+                           f"_switch_{self.switch}.ini"
+            moxa.write_ini_file(bmub3_config, moxa_config_list)
+        elif self.vehicle_name == "BMU-B4":
+            bmub4_config = f"data/stadler/BMU-B4/flirt{self.vehicle_name}" \
+                           f"_consist{self.total_amount_consists + 1}" \
+                           f"_switch_{self.switch}.ini"
+            moxa.write_ini_file(bmub4_config, moxa_config_list)
