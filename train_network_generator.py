@@ -4,7 +4,7 @@ from stadler.stadler import Stadler
 
 def main():
     # Change here the desired amount of consists and the design.
-    stadler = Stadler(total_amount_consists="11", vehicle_name="BMU-B4")
+    stadler = Stadler(total_amount_consists="11", vehicle_name="DMU4")
     switch_list = stadler.chosen_train()
 
     for consist in range(int(stadler.total_amount_consists)):
@@ -33,7 +33,7 @@ def main():
                               switch=switch,
                               vehicle_name=stadler.vehicle_name)
                 flirt.generate_flirt_switch_config()
-            elif switch[0] == "P":
+            if switch[0] == "P":
                 flirt = Flirt(config="data/stadler/switches_p.csv",
                               total_amount_consists=consist,
                               switch=switch,
@@ -41,15 +41,6 @@ def main():
                 flirt.generate_flirt_switch_config()
             else:
                 continue
-    # moxa = Moxa("data/moxa/moxa_4500a_16.ini")
-    # moxa_list = moxa.convert_ini_file_to_list()
-    # print(moxa.generate_ini_file())
-    # new_config_list = []
-    # for line in moxa_list:
-    #     if f"Port_{1}_EN" in line:
-    #         replaced_line = line.replace('1\n', '0\n')
-    #         new_config_list.append(replaced_line)
-    #         print(new_config_list)
 
 
 if __name__ == '__main__':
