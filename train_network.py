@@ -34,5 +34,5 @@ class TrainNetwork:
             return switch_information
         except FileNotFoundError:
             print(f"The selected file {self.config} could not be found.")
-        # except ValueError:
-        #     print(f"There is an empty value that can't be processed.")
+        except ValueError:
+            print(f"There is an empty value that can't be processed.")
