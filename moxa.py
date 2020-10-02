@@ -7,11 +7,10 @@ class Moxa:
     init file.
     """
 
-    def __init__(self, coupling_mode, coupling_port, functions, ini_file, management_vlan,
-                 netmask, poe, ports, port_based_ip_list, vlan,
-                 redundancy_ports, redundant_protocol, ring_master,
-                 switch_ip, switch_name,
-                 tagged_ports, untagged_ports):
+    def __init__(self, coupling_mode, coupling_port, functions, ini_file,
+                 management_vlan, netmask, poe, ports, port_based_ip_list,
+                 vlan, redundancy_ports, redundant_protocol, ring_master,
+                 switch_ip, switch_name, tagged_ports, untagged_ports):
         self.coupling_mode = coupling_mode
         self.coupling_port = coupling_port
         self.functions = functions
@@ -92,7 +91,8 @@ class Moxa:
                               current_netmask, template_file)
 
             def_current_port_name = f"Port_{port}_NAME\t\t"
-            current_port_name = def_current_port_name + self.functions[counter]
+            current_port_name = def_current_port_name + \
+                str(self.functions[counter])
             self.replace_line(def_current_port_name, def_current_port_name,
                               current_port_name, template_file)
 
