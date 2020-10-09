@@ -29,6 +29,26 @@ class Moxa:
         self.tagged_ports = tagged_ports
         self.untagged_ports = untagged_ports
 
+    def generate_ini_file(self):
+        """
+        This method generates a moxa config file by replacing the default
+        values by the provided dataframe for the project.
+
+        :return: file
+        """
+        template_file = self.convert_ini_file_to_list()
+
+        # Set the Switch values.
+        self.set_switch_values(file=template_file)
+
+        # Set Turbo Ring values.
+        self.set_turbo_ring_values(file=template_file)
+
+        # Set port specific values.
+        self.set_port_values(file=template_file)
+
+        return template_file
+
     def convert_ini_file_to_list(self):
         """
         This method opens a init file then returns them in to a list.
@@ -40,106 +60,6 @@ class Moxa:
         moxa_ini_file.close()
 
         return moxa_ini_list
-
-    def generate_ini_file(self):
-        """
-        This method generates a moxa config file by replacing the default
-        values by the provided dataframe for the project.
-
-        :return: file
-        """
-        def_ip_address = "192.168.127.253"
-        def_netmask = "255.255.255.0"
-        management_vlan = str(*self.management_vlan)
-
-        template_file = self.convert_ini_file_to_list()
-        counter = 0
-        # Set the switch values.
-        self.replace_line("SwitchName\t\t",
-                          "\n", self.switch_name, template_file)
-        self.replace_line("IPAddress\t\t",
-                          def_ip_address, str(*self.switch_ip), template_file)
-        self.replace_line("Netmask\t\t\t",
-                          def_netmask, self.netmask, template_file)
-        self.replace_line("SysVID\t\t\t",
-                          "1", management_vlan[:-1], template_file)
-
-        # Set Turbo Ring values.
-        self.replace_line("RedundantProtol\t\t", "0",
-                          self.redundant_protocol, template_file)
-        self.replace_line("Ring1_Master\t\t", "0",
-                          self.ring_master, template_file)
-        self.replace_line("CouplingMode\t\t", "0",
-                          self.coupling_mode, template_file)
-        if self.coupling_port == "14":
-            self.replace_line("Coupling_1st\t\t", "14",
-                              self.coupling_port, template_file)
-        else:
-            self.replace_line("Coupling_1st\t\t", "14",
-                              str(*self.coupling_port), template_file)
-
-        # Set port specific values.
-        for port in self.ports:
-            def_current_port = f"DeviceIP_{port}\t"
-            current_port = def_current_port + self.port_based_ip_list[counter]
-            self.replace_line(def_current_port, def_current_port,
-                              current_port, template_file)
-
-            def_current_netmask = f"Netmask_{port}\t"
-            current_netmask = def_current_netmask + self.netmask
-            self.replace_line(def_current_netmask, def_current_netmask,
-                              current_netmask, template_file)
-
-            def_current_port_name = f"Port_{port}_NAME\t\t"
-            current_port_name = def_current_port_name + \
-                str(self.functions[counter])
-            self.replace_line(def_current_port_name, def_current_port_name,
-                              current_port_name, template_file)
-
-            # Set VLAN values based on type.
-            def_current_vlan_id = f"VLANPvid_{port}\t\t1"
-            untagged = def_current_vlan_id[:-1] + self.untagged_ports[counter]
-            self.replace_line(def_current_vlan_id, def_current_vlan_id,
-                              untagged, template_file)
-
-            def_current_tagged = f"FixVid_{port}\t\t"
-            tagged = def_current_tagged + self.tagged_ports[counter]
-            self.replace_line(def_current_tagged, def_current_tagged,
-                              tagged, template_file)
-
-            # Set PoE values.
-            def_power_allocation = f"POE_PORT{port}_POWERALLOCATION\t\t0"
-            power_allocation = \
-                def_power_allocation[:-1] + str(self.poe[counter])
-
-            def_power_output_mode = f"POE_PORT{port}_OUTPUTMODE\t\t0"
-            power_output_mode = f"POE_PORT{port}_OUTPUTMODE\t\t2"
-
-            def_port_check = f"POE_PORT{port}_PDCHECK\t\t0"
-            port_check = f"POE_PORT{port}_PDCHECK\t\t1"
-
-            def_pd_ipaddr = f"POE_PORT{port}_PDIPADDR\t\t"
-            pd_ipaddr = def_pd_ipaddr + self.port_based_ip_list[counter]
-
-            if not numpy.isnan(self.poe[counter]):
-                self.replace_line(def_power_allocation, def_power_allocation,
-                                  power_allocation[:-2], template_file)
-                # set power mode to force if power allocation value isn't 0.
-                if power_allocation[-2] != 0:
-                    self.replace_line(def_power_output_mode,
-                                      def_power_output_mode,
-                                      power_output_mode,
-                                      template_file)
-                    self.replace_line(def_port_check, def_port_check,
-                                      port_check,
-                                      template_file)
-                    self.replace_line(def_pd_ipaddr, def_pd_ipaddr,
-                                      pd_ipaddr,
-                                      template_file)
-
-            counter += 1
-
-        return template_file
 
     @staticmethod
     def get_line_number_in_list(phrase, array_name):
@@ -190,7 +110,150 @@ class Moxa:
 
     @staticmethod
     def write_ini_file(new_ini_file, ini_list):
+        """
+        This method takes in a list and writes this to a .INI file
+        :param new_ini_file: file
+        :param ini_list: list
+        :return: ini file
+        """
         moxa_file = open(new_ini_file, "w")
         moxa_file.writelines(ini_list)
 
         return moxa_file
+
+    def set_switch_values(self, file):
+        """
+        This method sets the values received from the file into the correct
+        place in the .INI template file.
+        :param file: list
+        """
+        def_ip_address = "192.168.127.253"
+        def_netmask = "255.255.255.0"
+        management_vlan = str(*self.management_vlan)
+
+        # Set the switch values.
+        self.replace_line("SwitchName\t\t",
+                          "Switch #\n", self.switch_name, file)
+        self.replace_line("IPAddress\t\t",
+                          def_ip_address, str(*self.switch_ip), file)
+        self.replace_line("Netmask\t\t\t",
+                          def_netmask, self.netmask, file)
+        self.replace_line("SysVID\t\t\t",
+                          "1", management_vlan[:-1], file)
+
+    def set_turbo_ring_values(self, file):
+        """
+        This method sets the values received from the file into the correct
+        place in the .INI template file.
+        :param file: list
+        """
+        self.replace_line("RedundantProtol\t\t", "0",
+                          self.redundant_protocol, file)
+        self.replace_line("Ring1_Master\t\t", "0",
+                          self.ring_master, file)
+        self.replace_line("CouplingMode\t\t", "0",
+                          self.coupling_mode, file)
+        if self.coupling_port == "14":
+            self.replace_line("Coupling_1st\t\t", "14",
+                              self.coupling_port, file)
+        else:
+            self.replace_line("Coupling_1st\t\t", "14",
+                              str(*self.coupling_port), file)
+
+    def set_port_values(self, file):
+        """
+        This method sets the values received from the file into the correct
+        place in the .INI template file.
+        :param file: list
+        """
+        counter = 0
+        for port in self.ports:
+            def_current_port = f"DeviceIP_{port}\t"
+            current_port = def_current_port + self.port_based_ip_list[counter]
+            self.replace_line(def_current_port, def_current_port,
+                              current_port, file)
+
+            def_current_netmask = f"Netmask_{port}\t"
+            current_netmask = def_current_netmask + self.netmask
+            self.replace_line(def_current_netmask, def_current_netmask,
+                              current_netmask, file)
+
+            def_current_port_name = f"Port_{port}_NAME\t\t"
+            current_port_name = def_current_port_name + \
+                                str(self.functions[counter])
+            self.replace_line(def_current_port_name, def_current_port_name,
+                              current_port_name, file)
+
+            # Set VLAN values based on type.
+            self.set_vlan_values(counter=counter,
+                                 file=file,
+                                 port=port)
+            # Set PoE values.
+            self.set_poe_values(counter=counter,
+                                file=file,
+                                port=port)
+            counter += 1
+
+    def set_vlan_values(self, counter, file, port):
+        """
+        This method sets the values received from the file into the correct
+        place in the .INI template file.
+        :param counter: current port
+        :param file: list
+        :param port: current port in list
+        """
+        def_current_vlan_id = f"VLANPvid_{port}\t\t1"
+        if self.untagged_ports[counter]:
+            untagged = def_current_vlan_id[:-1] + self.untagged_ports[counter]
+            self.replace_line(def_current_vlan_id, def_current_vlan_id,
+                              untagged, file)
+
+        if self.tagged_ports[counter]:
+            self.replace_line(def_current_vlan_id, def_current_vlan_id,
+                              f"VLANPvid_{port}\t\t1", file)
+
+            def_current_type = f"VLANType_{port}\t\t1"
+            self.replace_line(def_current_type, def_current_type,
+                              f"VLANType_{port}\t\t0", file)
+
+            def_current_tagged = f"FixVid_{port}\t\t\t"
+            tagged = def_current_tagged + self.tagged_ports[counter] + ","
+            self.replace_line(def_current_tagged, def_current_tagged,
+                              tagged, file)
+
+    def set_poe_values(self, counter, file, port):
+        """
+        This method sets the values received from the file into the correct
+        place in the .INI template file.
+        :param counter: current port
+        :param file: list
+        :param port: current port in list
+        """
+        def_power_allocation = f"POE_PORT{port}_POWERALLOCATION\t\t0"
+        power_allocation = \
+            def_power_allocation[:-1] + str(self.poe[counter])
+
+        def_power_output_mode = f"POE_PORT{port}_OUTPUTMODE\t\t0"
+        power_output_mode = f"POE_PORT{port}_OUTPUTMODE\t\t2"
+
+        def_port_check = f"POE_PORT{port}_PDCHECK\t\t0"
+        port_check = f"POE_PORT{port}_PDCHECK\t\t1"
+
+        def_pd_ipaddr = f"POE_PORT{port}_PDIPADDR\t\t"
+        pd_ipaddr = def_pd_ipaddr + self.port_based_ip_list[counter]
+
+        if not numpy.isnan(self.poe[counter]):
+            self.replace_line(def_power_allocation, def_power_allocation,
+                              power_allocation[:-2], file)
+            # set power mode to force if power allocation value isn't 0.
+            if power_allocation[-2] != 0:
+                self.replace_line(def_power_output_mode,
+                                  def_power_output_mode,
+                                  power_output_mode,
+                                  file)
+                self.replace_line(def_port_check, def_port_check,
+                                  port_check,
+                                  file)
+                self.replace_line(def_pd_ipaddr, def_pd_ipaddr,
+                                  pd_ipaddr,
+                                  file)
