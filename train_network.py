@@ -1,7 +1,3 @@
-"""
-TODO: Replace the read_csv approach with the read_excel one. see read_excel.py
-"""
-
 import pandas as pd
 
 
