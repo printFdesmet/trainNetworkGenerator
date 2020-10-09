@@ -2,6 +2,8 @@
 TODO: Convert the Multicast address(es) to their MAC.
 TODO: loop over the Multicast column replacing the IP value to the MAC variant.
 """
+import csv
+
 from moxa import Moxa
 from stadler.generate_ip_for_stadler import GenerateIPForStadler
 from stadler.stadler import Stadler
@@ -124,7 +126,15 @@ class Flirt(Stadler):
             tagged_ports=tagged_ports,
             untagged_ports=untagged_ports
         )
+
+        # return df.to_csv(
+        #     f"data/stadler/flirt{self.vehicle_name}"
+        #     f"_consist{self.total_amount_consists + 1}_switch_{self.switch}.csv")
+
         moxa_config_list = moxa.generate_ini_file()
+        # self.create_ip_table(ip_list=port_based_ip_list,
+        #                      name_list=functions,
+        #                      vlan_list=vlan_list)
 
         if self.vehicle_name == "DMU4":
             dmu4_config = f"data/stadler/DMU4/flirt{self.vehicle_name}" \
@@ -132,7 +142,7 @@ class Flirt(Stadler):
                           f"_switch_{self.switch}.ini"
             moxa.write_ini_file(dmu4_config, moxa_config_list)
         elif self.vehicle_name == "BMU-B3":
-            bmub3_config = f"data/stadler/BMU-B3/flirt{self.vehicle_name}" \
+            bmub3_config = f"data/stadler/BMU-B3/flirtV2{self.vehicle_name}" \
                            f"_consist{self.total_amount_consists + 1}" \
                            f"_switch_{self.switch}.ini"
             moxa.write_ini_file(bmub3_config, moxa_config_list)
@@ -141,3 +151,9 @@ class Flirt(Stadler):
                            f"_consist{self.total_amount_consists + 1}" \
                            f"_switch_{self.switch}.ini"
             moxa.write_ini_file(bmub4_config, moxa_config_list)
+
+    @staticmethod
+    def create_ip_table(ip_list, name_list, vlan_list):
+        with open("IP_TABLE.csv", "a") as file:
+            writer = csv.writer(file)
+            writer.writerows(zip(name_list, ip_list, vlan_list))
