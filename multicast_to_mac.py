@@ -1,6 +1,6 @@
 """
-        This class converts given MAC-addresses to their corresponding
-        IP-addresses.
+        This class converts given IP-addresses to their corresponding
+        MAC-addresses.
 """
 
 
