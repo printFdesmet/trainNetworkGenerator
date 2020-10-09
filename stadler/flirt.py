@@ -137,7 +137,7 @@ class Flirt(Stadler):
         #                      vlan_list=vlan_list)
 
         if self.vehicle_name == "DMU4":
-            dmu4_config = f"data/stadler/DMU4/flirt{self.vehicle_name}" \
+            dmu4_config = f"data/stadler/DMU4/flirtV2{self.vehicle_name}" \
                           f"_consist{self.total_amount_consists + 1}" \
                           f"_switch_{self.switch}.ini"
             moxa.write_ini_file(dmu4_config, moxa_config_list)
@@ -147,7 +147,7 @@ class Flirt(Stadler):
                            f"_switch_{self.switch}.ini"
             moxa.write_ini_file(bmub3_config, moxa_config_list)
         elif self.vehicle_name == "BMU-B4":
-            bmub4_config = f"data/stadler/BMU-B4/flirt{self.vehicle_name}" \
+            bmub4_config = f"data/stadler/BMU-B4/flirtV2{self.vehicle_name}" \
                            f"_consist{self.total_amount_consists + 1}" \
                            f"_switch_{self.switch}.ini"
             moxa.write_ini_file(bmub4_config, moxa_config_list)
