@@ -50,6 +50,8 @@ class GenerateIPForStadler:
         }
 
         vehicle_ip = vehicle_type_to_ip.get(self.vehicle_name)
+        # Filters the list to only take the untagged vlan for the octet
+        # generation.
         if len(self.vlan_id[counter]) > 3:
             untagged = self.vlan_id[counter].find("U")
             untagged -= 1
@@ -69,6 +71,8 @@ class GenerateIPForStadler:
 
         :returns: string
         """
+        # A little overkill :p, was not sure if I needed to make some more
+        # calculations.
         return str(self.consist_number + 1)
 
     def generate_unique_ip(self):
@@ -82,6 +86,7 @@ class GenerateIPForStadler:
         counter = 0
         ip_list = []
 
+        # Checks if not empty or nan(returns float value).
         for an_ip in self.ip:
             if type(an_ip) == float:
                 ip_list.append("")
