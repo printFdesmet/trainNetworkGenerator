@@ -34,7 +34,7 @@ class Moxa:
         This method generates a moxa config file by replacing the default
         values by the provided dataframe for the project.
 
-        :return: file
+        :return: list
         """
         template_file = self.convert_ini_file_to_list()
 
