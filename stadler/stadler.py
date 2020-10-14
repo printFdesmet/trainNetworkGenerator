@@ -9,7 +9,7 @@ class Stadler(TrainNetwork):
     """
 
     def __init__(self, total_amount_consists, vehicle_name, config=None):
-        super().__init__(config, total_amount_consists)
+        super().__init__(config, total_amount_consists, switch=None)
         self.total_amount_consists = total_amount_consists
         self.vehicle_name = vehicle_name
 
@@ -20,6 +20,7 @@ class Stadler(TrainNetwork):
 
         :return: list
         """
+        # Different amount of switches per vehicle type.
         dmu_4 = ["A1", "A2", "A3",
                  "B1", "B2",
                  "C1", "C2",
@@ -37,6 +38,7 @@ class Stadler(TrainNetwork):
                   "D1", "D2", "D3",
                   "P1"]
 
+        # Return list depending from the chosen vehicle type.
         if self.vehicle_name == "DMU4":
             return dmu_4
         elif self.vehicle_name == "BMU-B3":
@@ -85,7 +87,7 @@ class Stadler(TrainNetwork):
         else:
             for port in dataframe["Port"]:
                 if uplink_ports.get(port) is not None:
-                    dataframe.replace({"Port": port}, uplink_ports[port][0],
+                    dataframe.replace({"Port": port}, uplink_ports[port][1],
                                       inplace=True)
 
         return dataframe
