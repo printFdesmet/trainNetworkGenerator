@@ -1,10 +1,8 @@
-"""
-        This class converts given IP-addresses to their corresponding
-        MAC-addresses.
-"""
-
-
 class MulticastIPToMAC:
+    """
+            This class converts given IP-addresses to their corresponding
+            MAC-addresses.
+    """
     def __init__(self, multicast_list):
         self.multicast = multicast_list
 
@@ -36,7 +34,7 @@ class MulticastIPToMAC:
 
                 return False
 
-        # Check if first octet is from multicast range
+        # Check if first octet is from multicast range.
 
         if int(octets[0]) < 224 or int(octets[0]) > 239:
             print(f"First octet isn’t from multicast range !"
@@ -71,6 +69,8 @@ class MulticastIPToMAC:
 
         Method ip2mac takes multicast IP address as an argument
         and returns multicast MAC address
+
+        :returns: string
 
         """
 
